@@ -1,0 +1,125 @@
+import 'dart:convert';
+import 'package:flutter/material.dart';
+import 'package:flutter_tute2/models/user_model.dart';
+import 'package:http/http.dart' as http;
+
+class UserApi extends StatefulWidget {
+  const UserApi({super.key});
+
+  @override
+  State<UserApi> createState() => _UserApiState();
+}
+
+class _UserApiState extends State<UserApi> {
+  List<UserModel> userList = [];
+  Future<List<UserModel>> getUserApi() async {
+    final response =
+        await http.get(Uri.parse('https://jsonplaceholder.typicode.com/users'));
+    var data = jsonDecode(response.body.toString());
+    if (response.statusCode == 200) {
+      userList.clear();
+      for (Map<String, dynamic> m in data) {
+        userList.add(UserModel.fromJson(m));
+      }
+      return userList;
+    } else {
+      return userList;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('User Api Call'),
+      ),
+      body: Column(
+        children: [
+          Expanded(
+            child: FutureBuilder(
+              future: getUserApi(),
+              builder: (context, AsyncSnapshot<List<UserModel>> snapshot) {
+                if (!snapshot.hasData) {
+                  return const CircularProgressIndicator();
+                } else {
+                  return ListView.builder(
+                      itemCount: userList.length,
+                      itemBuilder: (context, index) {
+                        return Card(
+                          child: Padding(
+                            padding: const EdgeInsets.all(10.0),
+                            child: Column(
+                              children: [
+                                ReusableRow(
+                                    title: 'name',
+                                    value:
+                                        snapshot.data![index].name.toString()),
+                                ReusableRow(
+                                    title: 'username',
+                                    value: snapshot.data![index].username
+                                        .toString()),
+                                ReusableRow(
+                                    title: 'email',
+                                    value:
+                                        snapshot.data![index].email.toString()),
+                                const Text(
+                                  'Address',
+                                  style: TextStyle(fontWeight: FontWeight.bold),
+                                ),
+                                ReusableRow(
+                                    title: 'city',
+                                    value: snapshot.data![index].address!.city
+                                        .toString()),
+                                ReusableRow(
+                                    title: 'street',
+                                    value: snapshot.data![index].address!.street
+                                        .toString()),
+                                ReusableRow(
+                                    title: 'zipcode',
+                                    value: snapshot
+                                        .data![index].address!.zipcode
+                                        .toString()),
+                                const Text(
+                                  'Geo',
+                                  style: TextStyle(fontWeight: FontWeight.bold),
+                                ),
+                                ReusableRow(
+                                    title: 'lat',
+                                    value: snapshot
+                                        .data![index].address!.geo!.lat
+                                        .toString()),
+                                ReusableRow(
+                                    title: 'lng',
+                                    value: snapshot
+                                        .data![index].address!.geo!.lng
+                                        .toString()),
+                              ],
+                            ),
+                          ),
+                        );
+                      });
+                }
+              },
+            ),
+          )
+        ],
+      ),
+    );
+  }
+}
+
+class ReusableRow extends StatelessWidget {
+  const ReusableRow({super.key, required this.title, required this.value});
+  final String title, value;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(title),
+        Text(value),
+      ],
+    );
+  }
+}
